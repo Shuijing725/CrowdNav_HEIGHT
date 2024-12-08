@@ -11,13 +11,14 @@ This repository contains the codes for our paper titled "HEIGHT: Heterogeneous I
 
 ------
 ## Abstract
-We study the problem of safe and intention-aware robot navigation in dense and interactive crowds. 
-Most previous reinforcement learning (RL) based methods fail to consider different types of interactions among all agents or ignore the intentions of people, which results in performance degradation. 
-In this paper, we propose a novel recurrent graph neural network with attention mechanisms to capture heterogeneous interactions among agents through space and time. 
-To encourage longsighted robot behaviors, we infer the intentions of dynamic agents by predicting their future trajectories for several timesteps. 
-The predictions are incorporated into a model-free RL framework to prevent the robot from intruding into the intended paths of other agents. 
-We demonstrate that our method enables the robot to achieve good navigation performance and non-invasiveness in challenging crowd navigation scenarios. We successfully transfer the policy learned in simulation to a real-world TurtleBot 2i.
-
+We study the problem of robot navigation in dense and interactive crowds with environmental constraints such as corridors and furniture. 
+Previous methods fail to consider all types of interactions among agents and obstacles, leading to unsafe and inefficient robot paths. 
+In this article, we leverage a graph-based representation of crowded and constrained scenarios and propose a structured framework to learn robot navigation policies with deep reinforcement learning. 
+We first split the representations of different components in the environment and propose a heterogeneous spatio-temporal (st) graph to model distinct interactions among humans, robots, and obstacles. 
+Based on the heterogeneous st-graph, we propose HEIGHT, a novel navigation policy network architecture with different components to capture heterogeneous interactions among entities through space and time. 
+HEIGHT utilizes attention mechanisms to prioritize important interactions and a recurrent network to track changes in the dynamic scene over time, encouraging the robot to avoid collisions adaptively. 
+Through extensive simulation and real-world experiments, we demonstrate that HEIGHT outperforms state-of-the-art baselines in terms of success and efficiency in challenging navigation scenarios. 
+Furthermore, we demonstrate that our pipeline achieves better zero-shot generalization capability than previous works when the densities of humans and obstacles change.
 
 ## Overview
 This repository is organized in five parts: 
@@ -50,7 +51,7 @@ pip install -e .
 ### Training
 - Modify the configurations in `crowd_nav/configs/config.py`. Especially,
   - Gym environment: 
-    - Set `env.env_name = 'CrowdSim3DTbObsHie-v0'` for A^*^+CNN baseline. Set `env.env_name = 'CrowdSim3DTbObs-v0'` for all other methods.
+    - Set `env.env_name = 'CrowdSim3DTbObsHie-v0'` for A*+CNN baseline. Set `env.env_name = 'CrowdSim3DTbObs-v0'` for all other methods.
     - Different environment layouts:
       - For random environment in pure simulation, 
         - Set `env.scenario = 'circle_crossing'`
@@ -71,7 +72,7 @@ pip install -e .
       - RH: `SRNN.use_hr_attn = True`, `SRNN.use_self_attn = False`
       - HH: `SRNN.use_hr_attn = False`, `SRNN.use_self_attn = True`
       - RH + HH (ours): `SRNN.use_hr_attn = True`, `SRNN.use_self_attn = True`
-    - `lidar_gru` for A^*^+CNN
+    - `lidar_gru` for A*+CNN
     - `dsrnn_obs_vertex` for DS-RNN
     - `homo_transformer_obs` for HomoGAT
   - Logging and saving:
@@ -86,7 +87,7 @@ pip install -e .
   ```
 
 ### Testing 
-#### In simulation
+#### In simulation:
 - Please modify the test arguments in line 20-33 of `test.py` (**Don't set the argument values in terminal!**)
   - Set `--model_dir` to the path of the saved folder from training
   - Robot policy:
@@ -105,18 +106,19 @@ The testing results are logged in `trained_models/your_output_dir/test/` folder,
 If you set `--save_slides` to True in `test.py`, you will be able to see visualizations like this:  
 <img src="/figures/sim.gif" height="420" />
 
-#### In real-world
+#### In real-world:
 - In the folder of a trained checkpoint, in `config.py`,
   - Set `env.env_name = 'rosTurtlebot2iEnv-v0'` 
   - Change `sim2real` configurations if needed
 - Set up the sensors, perception modules, and the robot following our sim2real tutorial [here](https://github.com/Shuijing725/CrowdNav_Sim2Real_Turtlebot)
+  - **Note:** The above repo only serves as a reference point for the sim2real transfer. Since there are lots of uncertainties in real-world experiments that may affect performance, we cannot guarantee that it is reproducible on all cases. 
 - Run   
   ```
   python test.py 
   ```
 - From terminal, input the robot goal position and press enter, the robot will move if everything is up and running
 
-#### Test pre-trained models provided by us
+#### Test pre-trained models provided by us:
 | Method                    | `--model_dir` in test.py                             | `--test_model` in test.py |
 |---------------------------|------------------------------------------------------|---------------------------|
 | Ours, Random environment  | `trained_models/ours_HH_RH_randEnv`                  | `237800.pt`               |
@@ -133,10 +135,6 @@ Here are example learning curves of our proposed method.
 <img src="/figures/rewards.png" width="370" /> <img src="/figures/losses.png" width="370" />
 
 ------
-## Sim2Real
-We are happy to announce that our sim2real tutorial and code are released [here](https://github.com/Shuijing725/CrowdNav_Sim2Real_Turtlebot)!  
-**Note:** This repo only serves as a reference point for the sim2real transfer of crowd navigation. Since there are lots of uncertainties in real-world experiments that may affect performance, we cannot guarantee that it is reproducible on all cases. 
-
 
 ## Disclaimer
 1. We only tested our code in Ubuntu 20.04 with Python 3.8. The code may work on other OS or other versions of Python, but we do not have any guarantee.  
@@ -145,7 +143,7 @@ We are happy to announce that our sim2real tutorial and code are released [here]
 Unfortunately, we do not have time or resources for a thorough hyperparameter search. Thus, if your results are slightly worse than what is claimed in the paper, it is normal. 
 To achieve the best performance, we recommend some manual hyperparameter tuning.
 
-------
+
 ## Citation
 If you find the code or the paper useful for your research, please cite the following papers:
 ```
