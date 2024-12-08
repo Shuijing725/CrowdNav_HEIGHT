@@ -2,7 +2,6 @@ crowd_nav/data/
 data/
 demo_data/
 data_il/
-figures/
 crowd_nav/configs/
 .idea/
 *.pyc 

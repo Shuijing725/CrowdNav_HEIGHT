@@ -17,9 +17,7 @@ To encourage longsighted robot behaviors, we infer the intentions of dynamic age
 The predictions are incorporated into a model-free RL framework to prevent the robot from intruding into the intended paths of other agents. 
 We demonstrate that our method enables the robot to achieve good navigation performance and non-invasiveness in challenging crowd navigation scenarios. We successfully transfer the policy learned in simulation to a real-world TurtleBot 2i.
 
-<p align="center">
-<img src="/figures/open.png" width="450" />
-</p>
+<img src="/figures/sim.gif" height="200" /> <img src="/figures/real.gif" height="200" />
 
 ## Setup
 1. In a conda environment or virtual environment with Python 3.x, install the required python package
@@ -146,20 +144,19 @@ To achieve the best performance, we recommend some manual hyperparameter tuning.
 ## Citation
 If you find the code or the paper useful for your research, please cite the following papers:
 ```
+@article{liu2024height,
+  title={HEIGHT: Heterogeneous Interaction Graph Transformer for Robot Navigation in Crowded and Constrained Environments},
+  author={Liu, Shuijing and Xia, Haochen and Pouria, Fatemeh Cheraghi and Hong, Kaiwen and Chakraborty, Neeloy and Driggs-Campbell, Katherine},
+  journal={arXiv preprint arXiv:2411.12150},
+  year={2024}
+}
+
 @inproceedings{liu2022intention,
   title={Intention Aware Robot Crowd Navigation with Attention-Based Interaction Graph},
   author={Liu, Shuijing and Chang, Peixin and Huang, Zhe and Chakraborty, Neeloy and Hong, Kaiwen and Liang, Weihang and Livingston McPherson, D. and Geng, Junyi and Driggs-Campbell, Katherine},
   booktitle={IEEE International Conference on Robotics and Automation (ICRA)},
   year={2023},
   pages={12015-12021}
-}
-
-@inproceedings{liu2020decentralized,
-  title={Decentralized Structural-RNN for Robot Crowd Navigation with Deep Reinforcement Learning},
-  author={Liu, Shuijing and Chang, Peixin and Liang, Weihang and Chakraborty, Neeloy and Driggs-Campbell, Katherine},
-  booktitle={IEEE International Conference on Robotics and Automation (ICRA)},
-  year={2021},
-  pages={3517-3524}
 }
 ```
 
