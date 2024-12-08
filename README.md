@@ -1,14 +1,15 @@
 # Height_CrowdNav
 
 This repository contains the codes for our paper titled "HEIGHT: Heterogeneous Interaction Graph Transformer for Robot Navigation in Crowded and Constrained Environments".   
-
 [[Website]](https://sites.google.com/view/crowdnav-height/home) [[arXiv]](https://arxiv.org/abs/2307.06924) [[Videos]](https://www.youtube.com/playlist?list=PLL4IPhbfiY3YkITpyLjeroak_wBn151pn)  
 
-------
+<img src="/figures/sim.gif" height="250" /> <img src="/figures/real.gif" height="250" />   
+
 
 **[News]**
 - Please check out my curated paper list for robot social navigation [here](https://github.com/Shuijing725/awesome-robot-social-navigation) (It is under active development) 
 
+------
 ## Abstract
 We study the problem of safe and intention-aware robot navigation in dense and interactive crowds. 
 Most previous reinforcement learning (RL) based methods fail to consider different types of interactions among all agents or ignore the intentions of people, which results in performance degradation. 
@@ -17,8 +18,15 @@ To encourage longsighted robot behaviors, we infer the intentions of dynamic age
 The predictions are incorporated into a model-free RL framework to prevent the robot from intruding into the intended paths of other agents. 
 We demonstrate that our method enables the robot to achieve good navigation performance and non-invasiveness in challenging crowd navigation scenarios. We successfully transfer the policy learned in simulation to a real-world TurtleBot 2i.
 
-<img src="/figures/sim.gif" height="200" /> <img src="/figures/real.gif" height="200" />
 
+## Overview
+This repository is organized in five parts: 
+- `crowd_nav/` folder contains configurations and policies used in the simulator.
+- `crowd_sim/` folder contains the simulation environment.
+- `training/` contains the code for the RL policy networks and ppo algorithm. 
+- `trained_models/` contains some pretrained models provided by us. 
+
+------
 ## Setup
 1. In a conda environment or virtual environment with Python 3.x, install the required python package
 ```
@@ -37,12 +45,6 @@ pip install -e .
 4. Install [Python-RVO2](https://github.com/sybrenstuvel/Python-RVO2) library
 
 
-## Overview
-This repository is organized in five parts: 
-- `crowd_nav/` folder contains configurations and policies used in the simulator.
-- `crowd_sim/` folder contains the simulation environment.
-- `training/` contains the code for the RL policy networks and ppo algorithm. 
-- `trained_models/` contains some pretrained models provided by us. 
 
 ## Run the code
 ### Training
@@ -101,7 +103,7 @@ This repository is organized in five parts:
 Note that the `config.py` in the `--model_dir` folder will be loaded, instead of those in the root directory.  
 The testing results are logged in `trained_models/your_output_dir/test/` folder, and are also printed on terminal.  
 If you set `--save_slides` to True in `test.py`, you will be able to see visualizations like this:  
-<img src="/figures/output1.gif" width="420" /> <img src="/figures/output2.gif" width="420" />
+<img src="/figures/sim.gif" height="420" />
 
 #### In real-world
 - In the folder of a trained checkpoint, in `config.py`,
@@ -130,9 +132,11 @@ Here are example learning curves of our proposed method.
 
 <img src="/figures/rewards.png" width="370" /> <img src="/figures/losses.png" width="370" />
 
+------
 ## Sim2Real
 We are happy to announce that our sim2real tutorial and code are released [here](https://github.com/Shuijing725/CrowdNav_Sim2Real_Turtlebot)!  
 **Note:** This repo only serves as a reference point for the sim2real transfer of crowd navigation. Since there are lots of uncertainties in real-world experiments that may affect performance, we cannot guarantee that it is reproducible on all cases. 
+
 
 ## Disclaimer
 1. We only tested our code in Ubuntu 20.04 with Python 3.8. The code may work on other OS or other versions of Python, but we do not have any guarantee.  
@@ -141,6 +145,7 @@ We are happy to announce that our sim2real tutorial and code are released [here]
 Unfortunately, we do not have time or resources for a thorough hyperparameter search. Thus, if your results are slightly worse than what is claimed in the paper, it is normal. 
 To achieve the best performance, we recommend some manual hyperparameter tuning.
 
+------
 ## Citation
 If you find the code or the paper useful for your research, please cite the following papers:
 ```
