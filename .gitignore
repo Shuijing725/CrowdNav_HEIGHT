@@ -1,0 +1,31 @@
+crowd_nav/data/
+data/
+demo_data/
+data_il/
+figures/
+crowd_nav/configs/
+.idea/
+*.pyc 
+*__pycache__*
+
+# file from macos
+.DS_Store
+
+# python file
+wxpusher.py
+train1.py
+train2.py
+train3.py
+train_curriculum1.py
+test1.py
+test2.py
+test3.py
+test4.py
+test5.py
+plot.py
+check_env.py
+crowd_sim/envs/crowd_sim_tb2_math.py
+crowd_sim/envs/crowd_sim_tb2_trait.py
+
+baselines
+Python-RVO2

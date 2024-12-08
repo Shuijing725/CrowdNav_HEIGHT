@@ -1,0 +1,29 @@
+<robot name="arena_wall">
+  <link concave="yes" name="baseLink">
+    <contact>
+      <lateral_friction value="0.5"/>
+      <rolling_friction value="0.0"/>
+      <contact_cfm value="0.0"/>
+      <contact_erp value="1.0"/>
+    </contact>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="arena_wall.obj" scale="1 1 1"/>
+      </geometry>
+
+    </visual>
+    <!--concave='yes' is needed. Otherwise, the convex hull will be used-->
+    <collision concave="yes">
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="arena_wall.obj" scale="1 1 1"/>
+      </geometry>
+    </collision>
+  </link>
+</robot>

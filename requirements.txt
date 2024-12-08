@@ -1,0 +1,9 @@
+matplotlib
+pandas
+gym
+tensorflow==2.11.0
+numpy<=1.23.1
+pybullet==3.2.6
+cmake
+Cython
+imageio

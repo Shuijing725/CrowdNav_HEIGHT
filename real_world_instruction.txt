@@ -1,0 +1,108 @@
+On Local:
+"ssht" - ssh to turtlebot and enters the password automatically (wait for a few more minutes if "No route to host" shown)
+
+Unplug the black ethernet cable & Plug in the orange ethernet cable and make sure this local computer is connected to Robotics Lab 5G!!!
+
+*****************************************************************************
+	      *** UNPLUG lidar wire before turning on robot ***
+On Turtlebot:
+0: Unplug the Lidar wire, turn on the top battery, turn on the base switch
+
+1: "init"
+# launch base
+ssh tb2xavier@192.168.1.51
+# password: turtlebot
+# Unplug the lidar wire!!!!!!
+source catkin_ws/devel/setup.bash && roslaunch turtlebot2i_bringup minimal.launch
+
+2: "lidar" (sometimes "lidar" doesn't work, if so, use the full commands below)
+# launch lidar
+ssh tb2xavier@192.168.1.51
+source catkin_ws/devel/setup.bash && sudo chmod 666 /dev/ttyUSB0 && sudo chmod 666 /dev/ttyUSB1 && sudo chmod 666 /dev/ttyUSB2 && roslaunch rplidar.launch
+
+# password: turtlebot
+
+3. (Not needed for now) Launch zed2 camera
+cd ~/zed_catkin_ws && source devel/setup.bash && roslaunch zed_wrapper zed2.launch
+
+4. (After finishing all steps below, before running test.py)
+launch T265 camera (Need to re-launch it before every navigation trial!)
+# Don't plug T265 into the USB hub, directly plug it into the jetson to avoid unstable connection!!
+source ~/tb2_shuijing.bash && roslaunch low_res.launch
+
+To kill everything:
+"turtkill" - kills base, lidar, Realsense Camera
+
+*****************************************************************************
+On local:
+
+t1. "laser_amcl"
+
+# launch amcl navigation
+# When "Enter map file",
+# for workstation: leave as default
+# for kitchen: /home/shuijing/csl_cafe_2024.yaml
+# map_hallway can be changed by another constructed map
+# wait until "odom received"
+# if error, try:
+# 1. kill the T265 if it's running
+# 2. Restart everything
+conda deactivate && source ~/tb2.bash && source ~/catkin_ws/devel/setup.bash && roslaunch turtlebot_navigation laser_amcl_demo.launch map_file:=$HOME/csl_entrance.yaml
+
+# launch rviz
+# calibrate the initial pose by "2d pose estimate"
+# for convenience, move the robot to a "familar" area to better localize itself
+# note to change the "fixed frame" to "map"
+conda deactivate && source ~/tb2.bash && source ~/catkin_ws/devel/setup.bash && roslaunch turbot_rviz nav.launch
+
+
+t2:
+# localize the robot using AMCL
+# Change the path of map in line 21 if needed
+# wait until ros message is shown
+conda deactivate && source ~/tb2.bash && source ~/catkin_ws/devel/setup.bash && cd ~/catkin_ws/src/2D_lidar_person_detection && python find_location.py
+
+t3:
+# Change the filename in line 29 if needed
+# wait until "robot localized" is shown
+conda deactivate && source ~/tb2.bash && source ~/catkin_ws/devel/setup.bash && cd ~/catkin_ws/src/2D_lidar_person_detection && python bg_removal_map.py
+
+t4:
+# launch people detector
+# note to edit dr_spaam_ros/config/topics.yaml to make sure
+# it subscirbes the /person_pts topic
+conda deactivate && source ~/tb2.bash && source ~/catkin_ws/devel/setup.bash && source ~/virtual_envs/tb2/bin/activate && roslaunch dr_spaam_ros dr_spaam_ros.launch
+
+######################## Only for debugging purpose ########################
+Go back to t4, add /compare_map in rviz, change the turtlebot's pose so that the red & black scans are not too far from each other;
+Click "2D pose estimation" to correct the robot pose,
+then click "2D Nav Goal" (can be anything), the robo
+t will move to align red & black scans
+
+
+In rviz,
+1. Change "Fixed Frame" to 'map'
+2. Add 'by topic --> compare map --> image --> ok'
+3. Click 2D Pose Estimate and have the error towards the location to be front.
+4. click 2D navigation Goal and move around the turtlebot to match the localization again
+5. Move to the initial position.
+
+################################################
+
+t5:
+# Change the config parameters in /trained_policy_model/configs/config.py:
+# Make sure env.env_name = 'rosTurtlebot2iEnv-v0', and sim2real configs are set as desired
+# launch the main function
+conda deactivate && source ~/tb2.bash && source ~/virtual_envs/tb2/bin/activate && source ~/Desktop/zed/zed_ws/devel/setup.bash && cd ~/Desktop/CrowdNav_sim2real/CrowdNav_sim2real && python3 test.py
+
+*****************************************************************************
+Misc:
+
+# teleoperation
+source ~/tb2.bash && source ~/catkin_ws/devel/setup.bash && roslaunch turtlebot_teleop keyboard_teleop.launch
+
+if telop doesn't work in csl but works on xavier, run "sudo ufw disable" in csl
+
+# change the subscribed topic of dr_spaam:
+open ~/catkin_ws/src/2D_lidar_person_detection/dr_spaam_ros/config/topics.yaml
+change the subscriber topic between: /person_pts (background map removed), /scan (original lidar scan)
