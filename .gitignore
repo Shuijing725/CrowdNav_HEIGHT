@@ -1,7 +1,5 @@
 crowd_nav/data/
 data/
-demo_data/
-data_il/
 crowd_nav/configs/
 .idea/
 *.pyc 
@@ -22,9 +20,6 @@ test3.py
 test4.py
 test5.py
 plot.py
-check_env.py
-crowd_sim/envs/crowd_sim_tb2_math.py
-crowd_sim/envs/crowd_sim_tb2_trait.py
 
 baselines
 Python-RVO2
