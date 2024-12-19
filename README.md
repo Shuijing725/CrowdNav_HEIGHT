@@ -103,6 +103,8 @@ We recommend NOT trusting the performance of the robot when rendering the enviro
     - To test DWA,
       - Set `--dwa` to True, `--cpu` to True (DWA also needs a dummy `--model_dir`! The directory can be anything with a `configs/` folder.)
   - To save the gif and pictures of each episode, set `--save_slides` to True (Note: Saving the visuals will significantly slow down testing)
+  - ALWAYS set `--visualize` in `test.py` to `False`!
+    - Due to an unsolved synchronization bug, the timesteps of the robot and humans are not synchronized when `--visualize` is `True`. We recommend NOT trusting the performance of the robot when rendering the environment.
 - Run   
   ```
   python test.py 
