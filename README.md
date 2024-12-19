@@ -49,10 +49,12 @@ pip install -e .
 
 ## Run the code
 ### Simulation environment
-If you are only interested in our simulator, please skip step 2 and 3 in Setup, and run the following script to check our gym environment:
-  ```
-  python check_env.py 
-  ```
+If you are only interested in our simulator, please skip step 2 and 3 in [Setup](#setup), to visualize our gym environment, run:
+```
+python check_env.py 
+```
+**Note:** Due to an unsolved synchronization bug, the timesteps of the robot and humans are not synchronized when the environment is rendered. 
+We recommend NOT trusting the performance of the robot when rendering the environment, and set `--visualize` in `test.py` to `False` to obtain accurate results.
 ### Training
 - Modify the configurations in `crowd_nav/configs/config.py`. Especially,
   - Gym environment: 
