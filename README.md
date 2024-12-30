@@ -1,7 +1,7 @@
 # Height_CrowdNav
 
 This repository contains the codes for our paper titled "HEIGHT: Heterogeneous Interaction Graph Transformer for Robot Navigation in Crowded and Constrained Environments".   
-[[Website]](https://sites.google.com/view/crowdnav-height/home) [[arXiv]](https://arxiv.org/abs/2307.06924) [[Videos]](https://www.youtube.com/playlist?list=PLL4IPhbfiY3YkITpyLjeroak_wBn151pn)  
+[[Website]](https://sites.google.com/view/crowdnav-height/home) [[arXiv]](https://arxiv.org/abs/2411.12150) [[Videos]](https://www.youtube.com/playlist?list=PLL4IPhbfiY3ZjXE6wwfg0nffFr_GLtwee)  
 
 <img src="/figures/sim.gif" height="250" /> <img src="/figures/real.gif" height="250" />   
 
