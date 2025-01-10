@@ -29,7 +29,7 @@ This repository is organized in five parts:
 
 ------
 ## Setup
-1. In a conda environment or virtual environment with Python 3.x, install the required python package
+1. In a conda environment or virtual environment with Python 3.6, 3.7, or 3.8. Then install the required python package
 ```
 pip install -r requirements.txt
 ```
