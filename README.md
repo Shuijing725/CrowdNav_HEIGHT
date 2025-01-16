@@ -130,7 +130,7 @@ If you set `--save_slides` to True in `test.py`, you will be able to see visuali
 #### Test pre-trained models provided by us:
 | Method                    | `--model_dir` in test.py                             | `--test_model` in test.py |
 |---------------------------|------------------------------------------------------|---------------------------|
-| Ours, Random environment  | `trained_models/ours_HH_RH_randEnv`                  | `237800.pt`               |
+| Ours, Random environment  | `trained_models/ours_HH_RH_randEnv`                  | `237400.pt`               |
 | Ours, Lounge environment  | `trained_models/ours_RH_HH_loungeEnv_resumeFromRand` | `137400.pt`               |
 | Ours, Hallway environment | `trained_models/ours_RH_HH_hallwayEnv`               | `208200.pt`               |
 

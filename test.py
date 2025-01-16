@@ -18,7 +18,7 @@ def main():
 	# the following parameters will be determined for each test run
 	parser = argparse.ArgumentParser('Parse configuration file')
 	# the model directory that we are testing
-	parser.add_argument('--model_dir', type=str, default='data/ours_RH_HH_hallwayEnv')
+	parser.add_argument('--model_dir', type=str, default='data/ours_RH_HH_hallwayEnv_new')
 	# We recommend setting visualize to False
 	# because setting it to True will result in asynchronous robot and human simulation, and INCORRECT testing results
 	parser.add_argument('--visualize', default=False, action='store_true')
@@ -31,7 +31,7 @@ def main():
 	# otherwise: set to True
 	parser.add_argument('--cpu', default=False, action='store_true')
 	# model weight file you want to test
-	parser.add_argument('--test_model', type=str, default='104200.pt')
+	parser.add_argument('--test_model', type=str, default='238094.pt')
 	# parser.add_argument('--test_model', type=str, default='82000.pt')
 
 	# display lidar rays or not

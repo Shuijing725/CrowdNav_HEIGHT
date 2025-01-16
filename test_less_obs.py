@@ -19,9 +19,7 @@ def main():
 	# the following parameters will be determined for each test run
 	parser = argparse.ArgumentParser('Parse configuration file')
 	# the model directory that we are testing
-	parser.add_argument('--model_dir', type=str, default='data/randEnv_8to12smallobs_5to9human_0to2staticHuman_goal5to6_robCir4/ours_HH_RH')
-	# we are testing an IL policy or RL policy
-	parser.add_argument('--test_il', default=False, action='store_true')
+	parser.add_argument('--model_dir', type=str, default='data/ours_RH_HH_hallwayEnv_new')
 	parser.add_argument('--visualize', default=False, action='store_true')
 	# if -1, it will run 500 different cases; if >=0, it will run the specified test case repeatedly
 	parser.add_argument('--test_case', type=int, default=-1)
@@ -34,7 +32,7 @@ def main():
 	# otherwise: set to True
 	parser.add_argument('--cpu', default=False, action='store_true')
 	# model weight file you want to test
-	parser.add_argument('--test_model', type=str, default='238000.pt')
+	parser.add_argument('--test_model', type=str, default='237800.pt')
 	# parser.add_argument('--test_model', type=str, default='82000.pt')
 
 	# display lidar rays or not
@@ -63,13 +61,6 @@ def main():
 	config.sim.static_obs_num = 5
 	config.sim.static_obs_num_range = 2
 
-	# tell the policy network that we are testing poicy in env, not doing IL
-	if test_args.test_il:
-		config.il.train_il = False
-		config.il.test_il = True
-	else:
-		config.il.train_il = False
-		config.il.test_il = False
 	if test_args.visualize and test_args.visualize_lidar_rays:
 		config.lidar.visualize_rays = True
 	else:

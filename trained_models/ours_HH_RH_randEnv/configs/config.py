@@ -196,8 +196,9 @@ class Config(object):
             human_flow.regions = {1: np.array([-60, 20, -400, -300]) / 100.,
                                   2: np.array([-200, -100, 115, 290]) / 100.,
                                   3: np.array([-60, 20, 0, 260]) / 100.,
-                                  3.5: np.array([-60, 20, 300, 400]) / 100.,
+                                  3.5: np.array([-60, 20, 300, 550]) / 100.,
                                   4: np.array([-200, -100, 520, 690]) / 100.,
+                                  4.5: np.array([-650, -500, 550, 660]) / 100.,
                                   5: np.array([-60, 40, 563, 664]) / 100.,
                                   6: np.array([-650, -406, 840, 910]) / 100.,
                                   7: np.array([-221, 40, 790, 910]) / 100.,
@@ -222,10 +223,30 @@ class Config(object):
                                  [7, 5, 4],
                                  ]
             human_flow.correlated_routes = [
-                [[7, 5, 3], [3.5, 1]],
-                [[4, 5, 3], [3.5, 1]],
-                [[4, 5, 3], [2, 3, 1]],
-                [[7, 5, 3], [2, 3, 1]]
+                [[4.5, 5, 3, 1]],
+                [[5, 3, 1]],
+                [[3.5, 1]],
+                [[4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5,
+                 4.5, 4.5, 4.5, 4.5, 5, 3, 1]],
+
+                [[5, 3, 1], [4.5, 5, 3, 1]],
+                [[3.5, 1], [4.5, 5, 3, 1]],
+                [[5, 3, 1], [4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5,4.5,5, 3, 1]],
+                [[3.5, 1], [4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5,4.5, 5, 3, 1]],
+
+                [[5, 3, 1],
+                 [4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5,
+                  4.5, 4.5, 4.5, 4.5, 5, 3, 1]],
+                [[3.5, 1],
+                 [4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5,
+                  4.5, 4.5, 4.5, 4.5, 5, 3, 1]],
+                [[5, 3, 1],
+                 [4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5,
+                  4.5, 4.5, 4.5, 4.5, 5, 3, 1]],
+                [[3.5, 1],
+                 [4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5,
+                  4.5, 4.5, 4.5, 4.5, 5, 3, 1]],
+                # [[4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5,4.5,5, 3, 1]]
             ]
 
         elif env.csl_workspace_type == 'lounge':
@@ -369,12 +390,12 @@ class Config(object):
 
     # key: region number, value: [x_low, x_high, y_low, y_high] of the rectangular shaped region
     if env.csl_workspace_type == 'hallway':
-        robot.regions = {1: np.array([-0.5, 0.5, -0.3, 0.3]),
+        robot.regions = {1: np.array([-0.2, 0.2, -0.3, 0.3]),
                          2: np.array([-0.3, 0.3, 5.5, 6]),
-                         3: np.array([-7, -6, 5.5, 6.5]),
+                         3: np.array([-5, -4, 5.5, 6.5]),
                          }
         # short-distance navigation
-        robot.routes = [[1, 2]
+        robot.routes = [[1, 3]
                         ]
     elif env.csl_workspace_type == 'lounge':
         robot.regions = {1: np.array([-0.5, 0.5, -0.3, 0.3]),
@@ -494,8 +515,8 @@ class Config(object):
     SRNN.obs_embedding_size = 64
     SRNN.human_embedding_size = 64
     # RNN size
-    SRNN.human_node_rnn_size = 128  # Size of Human Node RNN hidden state
-    SRNN.human_human_edge_rnn_size = 128  # 64 # 256  # Size of Human Human Edge RNN hidden state
+    SRNN.human_node_rnn_size = 128 # Size of Human Node RNN hidden state
+    SRNN.human_human_edge_rnn_size = 128 # Size of Human Human Edge RNN hidden state
 
     # Input and output size
     SRNN.human_node_output_size = 256  # Dimension of the node output
@@ -522,7 +543,7 @@ class Config(object):
     training.eps = 1e-5  # RMSprop optimizer epsilon
     training.alpha = 0.99  # RMSprop optimizer alpha
     training.max_grad_norm = 0.5  # max norm of gradients
-    training.num_env_steps = 200e6 # number of environment steps to train: 10e6 for holonomic, 20e6 for unicycle
+    training.num_env_steps = 200e6  # number of environment steps to train: 10e6 for holonomic, 20e6 for unicycle
     training.use_linear_lr_decay = True  # use a linear schedule on the learning rate: True for unicycle, False for holonomic
     training.save_interval = 200  # save interval, one save per n updates
     training.log_interval = 20  # log interval, one log per n updates
@@ -531,12 +552,12 @@ class Config(object):
     training.cuda = True  # use CUDA for training
     training.num_processes = 28  # was 16, how many training CPU processes to use
     # todo: change this
-    training.output_dir = 'data/randEnv_8to12smallobs_5to9human_0to2staticHuman_goal5to6_robCir4/dsrnn_vertex'  # the saving directory for train.py
+    training.output_dir = 'data/ours_RH_HH_hallwayEnv_new'  # the saving directory for train.py
     # resume training from an existing checkpoint or not
-    # none: train RL from scratch, rl: load a RL weight, il: load a IL weight
+    # none: train RL from scratch, rl: load a RL weight
     training.resume = 'none'
     # if resume != 'none', load from the following checkpoint
-    training.load_path = 'data/randEnv_8to12smallobs_5to9human_goal7to8/fakePC_RH_HH_OHattn_longTime/checkpoints/53200.pt'
+    training.load_path = 'trained_models/ours_HH_RH_randEnv/checkpoints/237800.pt'
     training.overwrite = True  # whether to overwrite the output directory in training
     training.num_threads = 1  # number of threads used for intraop parallelism on CPU
 

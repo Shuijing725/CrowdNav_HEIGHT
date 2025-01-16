@@ -25,19 +25,19 @@ class Config(object):
     env.env_name = 'CrowdSim3DTbObs-v0'  # name of the gym environment
     env.action_space = 'discrete'  # discrete or continuous action space
     # recommended value: if goal dist in [7, 9]: 30, if goal dist < 5: 20
-    env.time_limit = 80  # time limit of each episode (second)
+    env.time_limit = 50  # time limit of each episode (second)
     env.time_step = 0.1  # length of each timestep/control frequency (second)
     env.val_size = 100
     env.test_size = 500  # number of episodes for test.py
     env.randomize_attributes = False  # randomize the preferred velocity and radius of humans or not
-    env.seed = 654378  # random seed for environment
+    env.seed = 50569  # random seed for environment
     # circle_crossing: circle crossing humans, random robot init & goal poses, random obstacles
     # csl_workspace: human flow in a set of regions, robot init & goal poses in a set of regions, fixed obstacles
-    env.scenario = 'csl_workspace'
+    env.scenario = 'circle_crossing'
     # if env.scenario == 'csl_workspace', the environment is hallway, or lounge
-    env.csl_workspace_type = 'hallway'
+    env.csl_workspace_type = 'lounge'
     # sim or sim2real
-    env.mode = 'sim2real'
+    env.mode = 'sim'
 
     # robot action type
     action_space = BaseConfig()
@@ -107,12 +107,12 @@ class Config(object):
         elif env.csl_workspace_type == 'lounge':
             sim.arena_size = 11
     # number of dynamic humans
-    sim.human_num = 2 # todo: change!!!
+    sim.human_num = 7
     # the range of human_num is human_num-human_num_range~human_num+human_num_range
-    sim.human_num_range = 0
+    sim.human_num_range = 2
     # number of static humans
-    sim.static_human_num = 2
-    sim.static_human_range = 0
+    sim.static_human_num = 1
+    sim.static_human_range = 1
     # actual human num is in [human_num-human_num_range, human_num+human_num_range]
     # warning: may have problems if human_num - human_num_range < observed_human_num
 
@@ -340,7 +340,7 @@ class Config(object):
     robot = BaseConfig()
     robot.visible = True  # the robot is visible to humans
     # If robot.visible = true, the probability that a human will react to the robot
-    robot.visible_prob = 1
+    robot.visible_prob = 0.2
     # robot policy, with only human positions: selfAttn_merge_srnn (Liu et al, ICRA 2023)
     # robot policy, with only obstacle positions: dsrnn_obs_vertex (Liu et al, ICRA 2021)
     # A*+CNN: lidar_gru (Perez-D’Arpino et al)
@@ -354,7 +354,7 @@ class Config(object):
         robot.radius = 0.3  # radius of the robot
     robot.height = 0.45  # height of the robot
     robot.v_pref = 1  # max velocity of the robot
-    robot.allow_backward = False
+    robot.allow_backward = True
     # for turtlebot
     robot.v_max = 0.5
     if not robot.allow_backward:
@@ -373,8 +373,8 @@ class Config(object):
     # for both circle_crossing and csl_workspace
     # range of distance between robot initial position and goal position
     # if you don't want to specify the range, set robot.min_goal_dist = 0 and robot.max_goal_dist = np.inf
-    robot.min_goal_dist = 8  # 2
-    robot.max_goal_dist = 9  # 4
+    robot.min_goal_dist = 5  # 2
+    robot.max_goal_dist = 6 # 4
     if env.mode == 'sim':
         robot.initTheta_range = [0, 2 * np.pi]
     else:
@@ -453,12 +453,9 @@ class Config(object):
     humans.visible = True  # a human is visible to other humans and the robot
     # policy to control the humans: orca or social_force
     humans.policy = "orca"
-    if env.mode == 'sim':
-        humans.radius = 0.3  # radius of each human
-    else:
-        humans.radius = 0.25
-    humans.height = 1.5  # height of each human
-    humans.v_pref = 0.65  # max velocity of each human
+    humans.radius = 0.25 # radius of each human
+    humans.height = 0.7  # height of each human
+    humans.v_pref = 0.5  # max velocity of each human
     # FOV = this values * PI
     humans.FOV = 2.
 
@@ -472,7 +469,7 @@ class Config(object):
 
     # a human may change its radius and/or v_pref after it reaches its current goal
     humans.random_radii = False
-    humans.random_v_pref = False
+    humans.random_v_pref = True
 
     # one human may have a random chance to be blind to other agents at every time step
     humans.random_unobservability = False
@@ -490,7 +487,7 @@ class Config(object):
     # config for ORCA
     orca = BaseConfig()
     orca.neighbor_dist = 10
-    orca.safety_space = 0.
+    orca.safety_space = 0.1
     orca.time_horizon = 5
     orca.time_horizon_obst = 5
 
@@ -542,7 +539,7 @@ class Config(object):
 
     # training config
     training = BaseConfig()
-    training.lr = 8e-5  # learning rate (default: 4e-5)
+    training.lr = 5e-5 # 1e-4  # learning rate (default: 8e-5)
     training.eps = 1e-5  # RMSprop optimizer epsilon
     training.alpha = 0.99  # RMSprop optimizer alpha
     training.max_grad_norm = 0.5  # max norm of gradients
@@ -553,9 +550,9 @@ class Config(object):
     training.use_proper_time_limits = False  # compute returns taking into account time limits
     training.cuda_deterministic = False  # sets flags for determinism when using CUDA (potentially slow!)
     training.cuda = True  # use CUDA for training
-    training.num_processes = 32  # was 16, how many training CPU processes to use
+    training.num_processes = 28  # was 16, how many training CPU processes to use
     # todo: change this
-    training.output_dir = 'data/ours_RH_HH_hallwayEnv'  # the saving directory for train.py
+    training.output_dir = 'data/ours_RH_HH_hallwayEnv_new'  # the saving directory for train.py
     # resume training from an existing checkpoint or not
     # none: train RL from scratch, rl: load a RL weight
     training.resume = 'none'
