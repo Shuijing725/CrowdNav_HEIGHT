@@ -497,6 +497,57 @@ class Config(object):
     sf.B = 1
     sf.KI = 1
 
+    # config for dwa
+    dwa = BaseConfig()
+    dwa.predict_time = 0.5
+    dwa.to_goal_cost_gain = 0.1
+    dwa.speed_cost_gain = 0.8
+    dwa.obstacle_cost_gain = 1.0
+    dwa.robot_stuck_flag_cons = 0.008
+    dwa.dynamics_weight = 4.0
+    dwa.stuck_action = 2
+
+    # how much does a point move in the velocity space
+    dwa.v_resolution = 0.05
+    dwa.yaw_rate_resolution = 0.1
+
+    # These two values are used to calculate action. They only need to be changed if action changes
+    # max_accel * dt = dv and max_delta_yaw_rate * dt = dw
+    dwa.max_accel = 0.5
+    dwa.max_delta_yaw_rate = 1.0
+
+    # 0 refers to circle and 1 refers to rectangle
+    dwa.robot_type = 0
+
+    # if robot is rectagular robot, then it needs robot width and length
+    dwa.robot_width = 0.2
+    dwa.robot_length = 0.2
+
+    # left bottom coordinate of the boundary
+    dwa.boundary = np.array([-6, -6])
+    dwa.boundary_width = 12
+    dwa.boundary_height = 12
+
+    # default obstacle
+    # Can be anything. The obstacle will be updated as soon as program starts
+    dwa.ob = np.array([[-1, -1],
+                        [0, 2],
+                        [4.0, 2.0],
+                        [5.0, 4.0],
+                        [5.0, 5.0],
+                        [5.0, 6.0],
+                        [5.0, 9.0],
+                        [8.0, 9.0],
+                        [7.0, 9.0],
+                        [8.0, 10.0],
+                        [9.0, 11.0],
+                        [12.0, 13.0],
+                        [12.0, 12.0],
+                        [15.0, 15.0],
+                        [13.0, 13.0]
+                    ])
+
+
     # cofig for RL ppo
     ppo = BaseConfig()
     ppo.num_mini_batch = 2  # number of batches for ppo
