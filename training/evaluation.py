@@ -97,7 +97,7 @@ def evaluate(actor_critic, eval_envs, num_processes, device, config, logging, te
             # given observation, forward the robot policy to get action
             if not test_args.dwa:
                 with torch.no_grad():
-                    _, action, _, eval_recurrent_hidden_states = actor_critic.act(
+                    _, action, _, eval_recurrent_hidden_states, attn_weights_hh, attn_weights_rh = actor_critic.act(
                         obs,
                         eval_recurrent_hidden_states,
                         eval_masks,
@@ -111,8 +111,11 @@ def evaluate(actor_critic, eval_envs, num_processes, device, config, logging, te
             if test_args.visualize:
                 eval_envs.render()
 
+            # print(f"Check class name: {eval_envs.__class__.__name__}")
+            # print(f"Check RH attn weights: {attn_weights_rh}")
+            # print(f"Check HH attn weights: {attn_weights_hh}")
             # step the environment to get reward and next obs
-            obs, rew, done, infos = eval_envs.step(action)
+            obs, rew, done, infos = eval_envs.step((action, attn_weights_hh, attn_weights_rh))
 
             path = path + np.linalg.norm(obs['robot_node'][0, 0, :2].cpu().numpy() - last_pos)
 

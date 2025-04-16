@@ -69,6 +69,9 @@ class selfAttn_merge_SRNN_lidar(selfAttn_merge_SRNN):
 
         masks = reshapeT(masks, seq_length, nenv)
 
+        hidden_attn_weights_hh = None
+        attn_weights_rh = None
+
         # embed robot states
         robot_states = self.robot_linear(robot_states)
 
@@ -81,7 +84,8 @@ class selfAttn_merge_SRNN_lidar(selfAttn_merge_SRNN):
         # human-human self attention
         if self.config.SRNN.use_self_attn:
             # [seq len, nenv, human num, 128]
-            spatial_attn_out=self.spatial_attn(spatial_edges, detected_human_num).view(seq_length, nenv, self.human_num, -1)
+            spatial_attn_out, attn_weights_hh =self.spatial_attn(spatial_edges, detected_human_num)
+            spatial_attn_out = spatial_attn_out.view(seq_length, nenv, self.human_num, -1)
         else:
             spatial_attn_out = spatial_edges
         # [seq len, nenv, human num, 64] (64 is human_embedding_size)
@@ -89,7 +93,7 @@ class selfAttn_merge_SRNN_lidar(selfAttn_merge_SRNN):
 
         # robot-human attention
         if self.config.SRNN.use_hr_attn:
-            hidden_attn_weighted, _ = self.attn(robot_states, output_spatial, detected_human_num)
+            hidden_attn_weighted, attn_weights_rh = self.attn(robot_states, output_spatial, detected_human_num)
         else:
             # take sum of all human embeddings (without being weighted by RH attention scores)
             hidden_attn_weighted = torch.sum(output_spatial, dim=2, keepdim=True)
@@ -114,7 +118,10 @@ class selfAttn_merge_SRNN_lidar(selfAttn_merge_SRNN):
         for key in rnn_hxs:
             rnn_hxs[key] = rnn_hxs[key].squeeze(0)
 
+        # print(f"Check attn weights RH: {attn_weights_rh}")
+        # print(f"Check attn weights HH: {attn_weights_hh}")
+
         if infer:
-            return self.critic_linear(hidden_critic).squeeze(0), hidden_actor.squeeze(0), rnn_hxs
+            return self.critic_linear(hidden_critic).squeeze(0), hidden_actor.squeeze(0), rnn_hxs, attn_weights_hh, attn_weights_rh
         else:
-            return self.critic_linear(hidden_critic).view(-1, 1), hidden_actor.view(-1, self.output_size), rnn_hxs
+            return self.critic_linear(hidden_critic).view(-1, 1), hidden_actor.view(-1, self.output_size), rnn_hxs, hidden_attn_weights_hh, attn_weights_rh

@@ -85,9 +85,9 @@ class SpatialEdgeSelfAttn(nn.Module):
         v=self.v_linear(input_emb)
 
         # [max_human_num, seq_len*nenv, self.attn_size]
-        z,_=self.multihead_attn(q, k, v, key_padding_mask=torch.logical_not(attn_mask)) # if we use pytorch builtin function
+        z,weights=self.multihead_attn(q, k, v, key_padding_mask=torch.logical_not(attn_mask)) # if we use pytorch builtin function
         z=torch.transpose(z, dim0=0, dim1=1) # [seq_len*nenv, max_human_num, self.attn_size]
-        return z
+        return z, weights
 
 
 class HumanRobotEdgeRNN(RNNBase):
@@ -371,7 +371,7 @@ class selfAttn_merge_SRNN(nn.Module):
         # Spatial Edges
         # self attention
         if self.config.SRNN.use_self_attn:
-            spatial_attn_out=self.spatial_attn(spatial_edges, detected_human_num).view(seq_length, nenv, self.human_num, -1)
+            spatial_attn_out, attn_weights=self.spatial_attn(spatial_edges, detected_human_num).view(seq_length, nenv, self.human_num, -1)
         else:
             spatial_attn_out = spatial_edges
         output_spatial = self.spatial_linear(spatial_attn_out)
@@ -408,8 +408,8 @@ class selfAttn_merge_SRNN(nn.Module):
 
         for key in rnn_hxs:
             rnn_hxs[key] = rnn_hxs[key].squeeze(0)
-
+        
         if infer:
-            return self.critic_linear(hidden_critic).squeeze(0), hidden_actor.squeeze(0), rnn_hxs
+            return self.critic_linear(hidden_critic).squeeze(0), hidden_actor.squeeze(0), rnn_hxs, attn_weights
         else:
-            return self.critic_linear(hidden_critic).view(-1, 1), hidden_actor.view(-1, self.output_size), rnn_hxs
+            return self.critic_linear(hidden_critic).view(-1, 1), hidden_actor.view(-1, self.output_size), rnn_hxs, attn_weights

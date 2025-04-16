@@ -6,6 +6,10 @@ import os
 from collections import defaultdict
 from PIL import Image, ImageFilter
 import imageio
+import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
+from matplotlib.cm import ScalarMappable
+from matplotlib.patches import FancyArrowPatch
 
 import pybullet as p
 from pybullet_utils import bullet_client
@@ -21,6 +25,7 @@ from crowd_nav.policy.policy_factory import policy_factory
 
 from crowd_sim.pybullet.scene_abstract import SingleRobotEmptyScene
 from crowd_sim.envs.crowd_sim_var_human import CrowdSimVarNum
+from crowd_sim.envs.attn_weights_drawer import * 
 
 '''
 This environment contains all pybullet part.
@@ -55,6 +60,8 @@ class CrowdSim3DTB(CrowdSimVarNum):
         self.images = []
 
         self.save_dir = None
+
+        self.uid_color_map = {}
 
     def configure(self, config):
         # ray test
@@ -501,6 +508,9 @@ class CrowdSim3DTB(CrowdSimVarNum):
         else:
             all_spatial_edges = np.ones((max(1, self.max_human_num), 2)) * np.inf
 
+        visible_edges = []
+        visible_uids = []
+
         for i in range(self.human_num):
             if self.human_visibility[i]:
                 # vector pointing from human i to robot
@@ -510,9 +520,18 @@ class CrowdSim3DTB(CrowdSimVarNum):
                 if self.config.ob_space.add_human_vel:
                     # todo: for now the human velocities are in world frame, check zed2 for frame transformation
                     all_spatial_edges[self.humans[i].id, 2:] = self.last_human_states[i, 2:4]
+            
+                visible_edges.append(all_spatial_edges[self.humans[i].id])
+                visible_uids.append(self.humans[i].uid)
         # sort all humans by distance (invisible humans will be in the end automatically)
         ob['spatial_edges'] = np.array(sorted(all_spatial_edges, key=lambda x: np.linalg.norm(x[:2])))
         ob['spatial_edges'][np.isinf(ob['spatial_edges'])] = 15
+
+        sorted_indices = sorted(range(len(visible_edges)), key=lambda i: np.linalg.norm(visible_edges[i][:2]))
+        sorted_edges = [visible_edges[i] for i in sorted_indices]
+        sorted_uids = [visible_uids[i] for i in sorted_indices]
+
+        ob['human_uid_list'] = sorted_uids
 
         ob['detected_human_num'] = num_visibles
         # if no human is detected, assume there is one dummy human at (15, 15) to make the pack_padded_sequence work
@@ -657,7 +676,8 @@ class CrowdSim3DTB(CrowdSimVarNum):
                                        shape=p.GEOM_CYLINDER,
                                        color=self.config.human_flow.colors[
                                            i] if self.config.human_flow.colors is not None else None))
-                # print('uid:', self.free_human_uids[-1], 'color:', self.config.human_flow.colors[i])
+                print('uid:', self.free_human_uids[-1], 'color:', self.config.human_flow.colors[i])
+                self.uid_color_map[self.free_human_uids[-1]] = self.config.human_flow.colors[i]
             self.all_human_uids = copy.deepcopy(self.free_human_uids)
 
             # todo: add tb2 here
@@ -850,7 +870,208 @@ class CrowdSim3DTB(CrowdSimVarNum):
 
         return ob
 
+    def project_to_image(self, pt3d, view_matrix, projection_matrix, img_width, img_height):
+        vm = np.array(view_matrix).reshape((4,4), order='F')
+        pm = np.array(projection_matrix).reshape((4,4), order='F')
+        vec_4d = np.array([pt3d[0], pt3d[1], pt3d[2], 1.0], dtype=np.float32)
 
+        clip = pm @ (vm @ vec_4d)
+        w = clip[3]
+        if abs(w) < 1e-6:
+            return None
+
+        ndc_x = clip[0] / w
+        ndc_y = clip[1] / w
+        ndc_z = clip[2] / w  # in [0,1] if visible
+
+        # Check if off-screen or behind camera
+        if not (-1 <= ndc_x <= 1 and -1 <= ndc_y <= 1 and 0 <= ndc_z <= 1):
+            return None
+
+        u = int((ndc_x * 0.5 + 0.5) * img_width)
+        v = int((1.0 - (ndc_y * 0.5 + 0.5)) * img_height)
+        return (u, v)
+    
+    def build_full_order(self, num_humans, sorted_visible_humans):
+        full_list = list(range(num_humans))
+
+        for uid in sorted_visible_humans:
+            if uid in full_list:
+                full_list.remove(uid)
+
+        reordered = list(sorted_visible_humans) + full_list
+        return reordered
+
+
+    def plot_attn_weights(self, attn_weights, save_dir, dim, sorted_humans=None):
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+
+        plt.figure(figsize=(8, 6))
+
+        if dim == 1:
+            # 1D attention (e.g. Robot -> Humans)
+            # attn_weights shape: [num_humans]
+            attn_weights = attn_weights.squeeze().cpu().detach().numpy()
+
+            num_humans = len(attn_weights)
+            indices = np.arange(num_humans)
+            plt.bar(indices, attn_weights)
+
+            if sorted_humans is not None:
+                sorted_humans = self.build_full_order(num_humans, sorted_humans)
+                xlabels = [f"H{uid}" for uid in sorted_humans]
+                # plt.xticks(indices, xlabels, rotation=45, ha='right')
+                ticks_positions, text_objs = plt.xticks(indices, xlabels, rotation=45, ha='right')
+                for text_obj, uid in zip(text_objs, sorted_humans):
+                    color_rgba = self.uid_color_map.get(uid, (0, 0, 0, 1))  # default black if missing
+                    text_obj.set_color(color_rgba[:3])
+                plt.xlabel("Sorted Humans")
+            else:
+                plt.xlabel("Token Index")
+
+            plt.ylabel("Attention Weight")
+            plt.title("1D Attention Weights (Robot → Humans)")
+
+        elif dim == 2:
+            # 2D attention (e.g. Human -> Human)
+            # attn_weights shape: [1, num_humans, num_humans], so we index [0] to get [num_humans, num_humans]
+            attn_weights = attn_weights[0].cpu().detach().numpy()
+            plt.imshow(attn_weights, cmap='viridis', aspect='auto')
+            plt.colorbar(label="Attention Weight")
+
+            num_humans = attn_weights.shape[0]
+            sorted_humans = self.build_full_order(num_humans, sorted_humans)
+
+            if sorted_humans is not None and len(sorted_humans) == num_humans:
+                xlabels = [f"H{uid}" for uid in sorted_humans]
+                ticks_positions_x, x_text_objs = plt.xticks(np.arange(num_humans), xlabels)
+                ticks_positions_y, y_text_objs = plt.yticks(np.arange(num_humans), xlabels)
+
+                for text_obj, uid in zip(x_text_objs, sorted_humans):
+                    color_rgba = self.uid_color_map.get(uid, (0,0,0,1))
+                    text_obj.set_color(color_rgba[:3])
+
+                for text_obj, uid in zip(y_text_objs, sorted_humans):
+                    color_rgba = self.uid_color_map.get(uid, (0,0,0,1))
+                    text_obj.set_color(color_rgba[:3])
+                plt.xlabel("Key Humans")
+                plt.ylabel("Query Humans")
+            else:
+                plt.xlabel("Key Tokens")
+                plt.ylabel("Query Tokens")
+
+            plt.title("2D Attention Weights (Human → Human)")
+
+        # Save the plot
+        temp_file = f"{self.step_counter}.png"
+        temp_file = os.path.join(save_dir, temp_file)
+        plt.savefig(temp_file, bbox_inches='tight')
+        plt.close()
+    
+    def plot_attn_weights_text_1D(self, attn_weights, save_dir, sorted_humans=None):
+
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+
+        plt.figure(figsize=(8, 6))
+
+        # Convert attn_weights to numpy
+        attn_weights = attn_weights.squeeze().cpu().detach().numpy()
+        num_humans = len(attn_weights)
+        sorted_humans = self.build_full_order(num_humans, sorted_humans)
+
+        indices = np.arange(num_humans)
+        plt.bar(indices, attn_weights)
+
+        # Label x-axis with the sorted human IDs
+        if sorted_humans is not None:
+            xlabels = [f"H{uid}" for uid in sorted_humans]
+            ticks_positions, text_objs = plt.xticks(indices, xlabels, rotation=45, ha='right')
+            for text_obj, uid in zip(text_objs, sorted_humans):
+                color_rgba = self.uid_color_map.get(uid, (0, 0, 0, 1))  # default black if missing
+                text_obj.set_color(color_rgba[:3])
+            plt.xlabel("Key Humans (sorted)")
+        else:
+            plt.xlabel("Key Humans Index")
+
+        plt.ylabel("Attention Weight")
+        plt.title("Robot → Humans (Bar + Numeric Overlay)")
+
+        # Overlay each bar with numeric value
+        for i, val in enumerate(attn_weights):
+            plt.text(
+                i, 
+                val + 0.01,          # Slight offset above the bar
+                f"{val:.2f}", 
+                ha='center', 
+                va='bottom', 
+                fontsize=9
+            )
+
+        # Save the figure
+        temp_file = os.path.join(save_dir, f"{self.step_counter}_text_1D.png")
+        plt.savefig(temp_file, bbox_inches='tight')
+        plt.close()
+
+    def plot_attn_weights_text_2D(self, attn_weights, save_dir, sorted_humans=None):
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+
+        plt.figure(figsize=(8, 6))
+
+        # If shape = [1, N, N], index [0]; otherwise assume it's already [N, N]
+        if attn_weights.ndim == 3:
+            attn_matrix = attn_weights[0].cpu().detach().numpy()
+        else:
+            attn_matrix = attn_weights.cpu().detach().numpy()
+
+        num_humans = attn_matrix.shape[0]
+        sorted_humans = self.build_full_order(num_humans, sorted_humans)
+
+        # Display heatmap
+        cax = plt.imshow(attn_matrix, cmap='viridis', aspect='auto', vmin=0, vmax=1)
+        plt.colorbar(cax, label="Attention Weight")
+
+        if sorted_humans is not None and len(sorted_humans) == num_humans:
+            xlabels = [f"H{uid}" for uid in sorted_humans]
+            ticks_positions_x, x_text_objs = plt.xticks(np.arange(num_humans), xlabels)
+            ticks_positions_y, y_text_objs = plt.yticks(np.arange(num_humans), xlabels)
+
+            for text_obj, uid in zip(x_text_objs, sorted_humans):
+                color_rgba = self.uid_color_map.get(uid, (0,0,0,1))
+                text_obj.set_color(color_rgba[:3])
+
+            for text_obj, uid in zip(y_text_objs, sorted_humans):
+                color_rgba = self.uid_color_map.get(uid, (0,0,0,1))
+                text_obj.set_color(color_rgba[:3])
+        else:
+            plt.xticks(np.arange(num_humans))
+            plt.yticks(np.arange(num_humans))
+
+        plt.xlabel("Key Humans (sorted)")
+        plt.ylabel("Query Humans (sorted)")
+        plt.title("Human → Human (Heatmap + Numeric Overlay)")
+
+        # Overlay numeric text in each cell
+        ax = plt.gca()
+        for i in range(num_humans):
+            for j in range(num_humans):
+                weight_val = attn_matrix[i, j]
+                # White text if the cell is dark (<0.5), else black text for contrast
+                color_for_text = "white" if weight_val < 0.5 else "black"
+                ax.text(
+                    j, i,
+                    f"{weight_val:.2f}",
+                    ha="center", va="center",
+                    color=color_for_text,
+                    fontsize=9
+                )
+
+        # Save the figure
+        temp_file = os.path.join(save_dir, f"{self.step_counter}_text_2D.png")
+        plt.savefig(temp_file, bbox_inches='tight')
+        plt.close()
 
     # given desired left and right wheel velocity in sim,
     # return the actual left and right wheel velocity approximated from real trajectories
@@ -868,7 +1089,13 @@ class CrowdSim3DTB(CrowdSimVarNum):
 
     def step(self, action, update=True):
         # print('Step', self.envStepCounter)
-
+        if len(action) == 3:
+            attn_weights_hh=action[1]
+            attn_weights_rh=action[2]
+            action = list(action[0])[0]
+        else:
+            attn_weights_hh = None
+            attn_weights_rh = None
         human_actions = self.get_human_actions()
 
         # compute reward and episode info
@@ -993,7 +1220,6 @@ class CrowdSim3DTB(CrowdSimVarNum):
         self.scene.global_step()
         self.envStepCounter = self.envStepCounter + 1
 
-
         # compute the observation
         ob = self.generate_ob(reset=False)
 
@@ -1001,6 +1227,131 @@ class CrowdSim3DTB(CrowdSimVarNum):
         # only save the first 20 episodes
         if self.config.camera.render_checkpoint is not None and self.case_counter['test']<self.config.env.test_size:
             self.render_scene()
+            # print(f"Check RH attn weights: {attn_weights_rh}")
+            # print(f"Check HH attn weights: {attn_weights_hh}")
+            if attn_weights_rh is not None and attn_weights_hh is not None:
+                print(f"Check humans' order {self.step_counter}: {ob['human_uid_list']}")
+                save_dir_rh = os.path.join(self.config.training.output_dir, 'test_attn_weights',
+                            str(self.min_human_num) + 'to' + str(self.max_human_num) + 'humans_' +
+                            str(self.min_obs_num) + 'to' + str(self.max_obs_num) + 'obs',
+                            self.config.camera.render_checkpoint,
+                            str(self.rand_seed) + '_' + str(self.case_counter['test'] - 1) + 'RH')
+                save_dir_hh = os.path.join(self.config.training.output_dir, 'test_attn_weights',
+                            str(self.min_human_num) + 'to' + str(self.max_human_num) + 'humans_' +
+                            str(self.min_obs_num) + 'to' + str(self.max_obs_num) + 'obs',
+                            self.config.camera.render_checkpoint,
+                            str(self.rand_seed) + '_' + str(self.case_counter['test'] - 1) + 'HH')
+                # self.plot_attn_weights(attn_weights_rh, save_dir_rh, dim=1, sorted_humans=ob["human_uid_list"])
+                # self.plot_attn_weights(attn_weights_hh, save_dir_hh, dim=2, sorted_humans=ob["human_uid_list"])
+
+                self.plot_attn_weights_text_1D(attn_weights_rh, save_dir_rh, sorted_humans=ob["human_uid_list"])
+                self.plot_attn_weights_text_2D(attn_weights_hh, save_dir_hh, sorted_humans=ob["human_uid_list"])
+                
+                
+                view_matrix = self._p.computeViewMatrix(
+                    [0.5, 0.5, 12],
+                    [0.5, 0.5, 0],
+                    [1, 0, 0]
+                )
+                projection_matrix = self._p.computeProjectionMatrixFOV(
+                    fov=self.render_fov,
+                    aspect=self.render_img_w/self.render_img_h,
+                    nearVal=0.05,
+                    farVal=100
+                )
+
+                camera_w = self.render_img_w
+                camera_h = self.render_img_h
+
+                # produce a file path
+                out_dir = os.path.join(
+                    self.config.training.output_dir,
+                    'attn_combined',
+                    f"{self.rand_seed}_{self.case_counter['test']-1}"
+                )
+                out_dir_RH = os.path.join(
+                    self.config.training.output_dir,
+                    'attn_combined',
+                    f"{self.rand_seed}_{self.case_counter['test']-1}_RH"
+                )
+                out_dir_HH = os.path.join(
+                    self.config.training.output_dir,
+                    'attn_combined',
+                    f"{self.rand_seed}_{self.case_counter['test']-1}_HH"
+                )
+                save_path = os.path.join(out_dir, f"combined_{self.step_counter}.png")
+                
+                attn_weights = attn_weights_rh.squeeze().cpu().detach().numpy()
+
+                num_humans = len(attn_weights)
+
+                sorted_humans = self.build_full_order(num_humans, ob["human_uid_list"])
+
+                draw_combined_scene_with_attn(
+                    pb_client=self._p,
+                    camera_w=camera_w,
+                    camera_h=camera_h,
+                    view_matrix=view_matrix,
+                    projection_matrix=projection_matrix,
+                    render_fov=self.render_fov,
+                    robot_uid=self.robot.uid,
+                    human_uids=sorted_humans,
+                    attn_weights_rh=attn_weights_rh,
+                    attn_weights_hh=attn_weights_hh,
+                    threshold=0.02, 
+                    crop_x1_ratio=322/900,
+                    crop_y1_ratio=300/900,
+                    crop_x2_ratio=600/900,
+                    crop_y2_ratio=580/900,
+                    final_w=self.render_img_w*4,
+                    final_h=self.render_img_h*4,
+                    save_path=save_path
+                )
+
+                rh_only_path = os.path.join(out_dir_RH, f"{self.step_counter}_RH_only.png")
+                draw_combined_scene_with_attn(
+                    pb_client=self._p,
+                    camera_w=camera_w,
+                    camera_h=camera_h,
+                    view_matrix=view_matrix,
+                    projection_matrix=projection_matrix,
+                    render_fov=self.render_fov,
+                    robot_uid=self.robot.uid,
+                    human_uids=sorted_humans,
+                    attn_weights_rh=attn_weights_rh,
+                    attn_weights_hh=None,           # skip HH
+                    threshold=0.01,
+                    crop_x1_ratio=322/900,
+                    crop_y1_ratio=300/900,
+                    crop_x2_ratio=600/900,
+                    crop_y2_ratio=580/900,
+                    final_w=self.render_img_w*4,
+                    final_h=self.render_img_h*4,
+                    save_path=rh_only_path
+                )
+
+                hh_only_path = os.path.join(out_dir_HH, f"{self.step_counter}_HH_only.png")
+                draw_combined_scene_with_attn(
+                    pb_client=self._p,
+                    camera_w=camera_w,
+                    camera_h=camera_h,
+                    view_matrix=view_matrix,
+                    projection_matrix=projection_matrix,
+                    render_fov=self.render_fov,
+                    robot_uid=self.robot.uid,
+                    human_uids=sorted_humans,
+                    attn_weights_rh=None,           # skip RH
+                    attn_weights_hh=attn_weights_hh,
+                    threshold=0.1,
+                    crop_x1_ratio=322/900,
+                    crop_y1_ratio=300/900,
+                    crop_x2_ratio=600/900,
+                    crop_y2_ratio=580/900,
+                    final_w=self.render_img_w*4,
+                    final_h=self.render_img_h*4,
+                    save_path=hh_only_path
+                )
+                # print("Draw finish")
 
         if done:
             # move all cylinders to a dummy pos if an episode ends

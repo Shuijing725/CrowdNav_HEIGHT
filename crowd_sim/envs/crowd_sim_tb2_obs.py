@@ -72,6 +72,8 @@ class CrowdSim3DTbObs(CrowdSim3DTB):
 
     def step(self, action, update=True):
         ob, reward, done, info = super().step(action, update=update)
+        if len(action) == 3:
+            action = list(action[0])[0]
         for human in self.humans:
             human.recent_speeds.append(norm([human.vx, human.vy]))
         # For every self.human_timeout_len steps, check if a human is stuck for a while
@@ -140,6 +142,8 @@ class CrowdSim3DTbObs(CrowdSim3DTB):
 
         # robot.vx and vy are in world frame, transform to robot frame first
         v_robot_robFrame = self.world_to_robot([self.robot.vx, self.robot.vy])
+        visible_edges = []
+        visible_uids = []
         for i in range(self.human_num):
             if self.human_visibility[i]:
                 # vector pointing from human i to robot (in world frame)
@@ -162,9 +166,18 @@ class CrowdSim3DTbObs(CrowdSim3DTB):
                     else:
                         all_spatial_edges[self.humans[i].id, 2:] = self.last_human_states[i, 2:4]
 
+                visible_edges.append(all_spatial_edges[self.humans[i].id])
+                visible_uids.append(self.humans[i].uid)
+
         # sort all humans by distance (invisible humans will be in the end automatically)
         ob['spatial_edges'] = np.array(sorted(all_spatial_edges, key=lambda x: np.linalg.norm(x[:2])))
         ob['spatial_edges'][np.isinf(ob['spatial_edges'])] = 15
+
+        sorted_indices = sorted(range(len(visible_edges)), key=lambda i: np.linalg.norm(visible_edges[i][:2]))
+        sorted_edges = [visible_edges[i] for i in sorted_indices]
+        sorted_uids = [visible_uids[i] for i in sorted_indices]
+
+        ob['human_uid_list'] = sorted_uids
 
         ob['detected_human_num'] = num_visibles
         # if no human is detected, assume there is one dummy human at (15, 15) to make the pack_padded_sequence work
