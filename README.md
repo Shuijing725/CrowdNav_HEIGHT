@@ -1,6 +1,6 @@
 # Height_CrowdNav
 
-This repository contains the codes for our paper titled "HEIGHT: Heterogeneous Interaction Graph Transformer for Robot Navigation in Crowded and Constrained Environments".   
+This repository contains the codes for our paper titled "HEIGHT: Heterogeneous Interaction Graph Transformer for Robot Navigation in Crowded and Constrained Environments" in T-ASE.   
 [[Website]](https://sites.google.com/view/crowdnav-height/home) [[arXiv]](https://arxiv.org/abs/2411.12150) [[Videos]](https://www.youtube.com/playlist?list=PLL4IPhbfiY3ZjXE6wwfg0nffFr_GLtwee)  
 
 <img src="/figures/sim.gif" height="250" /> <img src="/figures/outdoor_real.gif" height="250" />   
@@ -27,9 +27,9 @@ This repository is organized in three parts:
 - `crowd_sim/` folder contains the simulation environment;
 - `training/` contains the code for the RL policy networks and ppo algorithm. 
 ### Branches
-- **main:** code for training and benchmarking in simulation and in Hallway and Lounge environments in the real-world; It contains all methods except DRL-VO and ORCA;
-- **attn_drawer:** code for visualizing attention scores in testing, used to generate Fig. 10 in the paper;
-- **jackal:** code for training and deploying on Clearpath Jackal robot in more challenging Atrium and Outdoor environments in the real-world; DRL-VO and ORCA baselines are also in this branch.
+- **main:** Code for training and benchmarking in simulation and in Hallway and Lounge environments in the real-world; It contains all methods except DRL-VO and ORCA;
+- **attn_drawer:** Code for visualizing attention scores in testing, used to generate Fig. 10 in the paper;
+- **jackal:** Code for training and deploying on Clearpath Jackal robot in more challenging Atrium and Outdoor environments in the real-world; DRL-VO and ORCA baselines are also in this branch.
 ------
 ## Setup
 1. In a conda environment or virtual environment with Python 3.6, 3.7, or 3.8. Then install the required python package
