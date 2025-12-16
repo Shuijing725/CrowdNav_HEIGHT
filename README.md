@@ -3,7 +3,7 @@
 This repository contains the codes for our paper titled "HEIGHT: Heterogeneous Interaction Graph Transformer for Robot Navigation in Crowded and Constrained Environments".   
 [[Website]](https://sites.google.com/view/crowdnav-height/home) [[arXiv]](https://arxiv.org/abs/2411.12150) [[Videos]](https://www.youtube.com/playlist?list=PLL4IPhbfiY3ZjXE6wwfg0nffFr_GLtwee)  
 
-<img src="/figures/sim.gif" height="250" /> <img src="/figures/real.gif" height="250" />   
+<img src="/figures/sim.gif" height="250" /> <img src="/figures/outdoor_real.gif" height="250" />   
 
 
 **[News]**
@@ -21,12 +21,15 @@ Through extensive simulation and real-world experiments, we demonstrate that HEI
 Furthermore, we demonstrate that our pipeline achieves better zero-shot generalization capability than previous works when the densities of humans and obstacles change.
 
 ## Overview
-This repository is organized in five parts: 
-- `crowd_nav/` folder contains configurations and policies used in the simulator.
-- `crowd_sim/` folder contains the simulation environment.
+### File organization
+This repository is organized in three parts: 
+- `crowd_nav/` folder contains configurations and policies used in the simulator;
+- `crowd_sim/` folder contains the simulation environment;
 - `training/` contains the code for the RL policy networks and ppo algorithm. 
-- `trained_models/` contains some pretrained models provided by us. 
-
+### Branches
+- **main:** code for training and benchmarking in simulation and in Hallway and Lounge environments in the real-world; It contains all methods except DRL-VO and ORCA;
+- **attn_drawer:** code for visualizing attention scores in testing, used to generate Fig. 10 in the paper;
+- **jackal:** code for training and deploying on Clearpath Jackal robot in more challenging Atrium and Outdoor environments in the real-world; DRL-VO and ORCA baselines are also in this branch.
 ------
 ## Setup
 1. In a conda environment or virtual environment with Python 3.6, 3.7, or 3.8. Then install the required python package
@@ -58,7 +61,7 @@ We recommend NOT trusting the performance of the robot when rendering the enviro
 ### Training
 - Modify the configurations in `crowd_nav/configs/config.py`. Especially,
   - Gym environment: 
-    - Set `env.env_name = 'CrowdSim3DTbObsHie-v0'` for A*+CNN baseline. Set `env.env_name = 'CrowdSim3DTbObs-v0'` for all other methods.
+    - Set `env.env_name = 'CrowdSim3DTbObsHie-v0'` for A*+CNN baseline and DRL-VO. Set `env.env_name = 'CrowdSim3DTbObs-v0'` for all other methods.
     - Different environment layouts:
       - For random environment in pure simulation, 
         - Set `env.scenario = 'circle_crossing'`
@@ -128,13 +131,11 @@ If you set `--save_slides` to True in `test.py`, you will be able to see visuali
 - From terminal, input the robot goal position and press enter, the robot will move if everything is up and running
 
 #### Test pre-trained models provided by us:
-| Method                    | `--model_dir` in test.py                             | `--test_model` in test.py |
-|---------------------------|------------------------------------------------------|---------------------------|
-| Ours, Random environment  | `trained_models/ours_HH_RH_randEnv`                  | `237400.pt`               |
-| Ours, Lounge environment  | `trained_models/ours_RH_HH_loungeEnv_resumeFromRand` | `137400.pt`               |
-| Ours, Hallway environment | `trained_models/ours_RH_HH_hallwayEnv`               | `208200.pt`               |
-
-
+Please download checkpoints [here](https://drive.google.com/drive/folders/1B1EA_gTMKg3hFQ_PXpQYjA8JBRHgmEQR?usp=drive_link), unzip the folder, and place it in `\trained_models`.    
+To test pre-trained checkpoints, in test.py, 
+- change `--model_dir` to the path of the unzipped folder (e.g. `trained_models/HEIGHT`)
+- change `--test_model` to the name of the checkpoint (can be found in `\checkpoints` inside the zipped folder, e.g. `237400.pt`).
+The testing results are both printed in the terminal and logged in the `\test` folder in the checkpoint's folder.
 ### Plot the training curves
 ```
 python plot.py
