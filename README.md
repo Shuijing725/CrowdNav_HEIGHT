@@ -1,7 +1,7 @@
 # Height_CrowdNav
 
-This repository contains the codes for our paper titled "HEIGHT: Heterogeneous Interaction Graph Transformer for Robot Navigation in Crowded and Constrained Environments" in T-ASE.   
-[[Website]](https://sites.google.com/view/crowdnav-height/home) [[arXiv]](https://arxiv.org/abs/2411.12150) [[Videos]](https://www.youtube.com/playlist?list=PLL4IPhbfiY3ZjXE6wwfg0nffFr_GLtwee)  
+This repository contains the codes for our paper titled "HEIGHT: Heterogeneous Interaction Graph Transformer for Robot Navigation in Crowded and Constrained Environments" in IEEE Transactions on Automation Science and Engineering (T-ASE).   
+[[Website]](https://sites.google.com/view/crowdnav-height/home) [[arXiv]](https://arxiv.org/abs/2411.12150) [[Videos]](https://www.youtube.com/playlist?list=PLL4IPhbfiY3ZjXE6wwfg0nffFr_GLtwee) [[Model checkpoints]](https://drive.google.com/drive/folders/1B1EA_gTMKg3hFQ_PXpQYjA8JBRHgmEQR?usp=drive_link)     
 
 <img src="/figures/sim.gif" height="250" /> <img src="/figures/outdoor_real.gif" height="250" />   
 
@@ -134,8 +134,8 @@ If you set `--save_slides` to True in `test.py`, you will be able to see visuali
 Please download checkpoints [here](https://drive.google.com/drive/folders/1B1EA_gTMKg3hFQ_PXpQYjA8JBRHgmEQR?usp=drive_link), unzip the folder, and place it in `\trained_models`.    
 To test pre-trained checkpoints, in test.py, 
 - change `--model_dir` to the path of the unzipped folder (e.g. `trained_models/HEIGHT`)
-- change `--test_model` to the name of the checkpoint (can be found in `\checkpoints` inside the zipped folder, e.g. `237400.pt`).
-The testing results are both printed in the terminal and logged in the `\test` folder in the checkpoint's folder.
+- change `--test_model` to the name of the checkpoint (can be found in `/checkpoints` inside the zipped folder, e.g. `237400.pt`).
+The testing results are both printed in the terminal and logged in the `/test` folder in the checkpoint's folder.
 ### Plot the training curves
 ```
 python plot.py
@@ -160,8 +160,8 @@ If you find the code or the paper useful for your research, please cite the foll
 @article{liu2024height,
   title={HEIGHT: Heterogeneous Interaction Graph Transformer for Robot Navigation in Crowded and Constrained Environments},
   author={Liu, Shuijing and Xia, Haochen and Pouria, Fatemeh Cheraghi and Hong, Kaiwen and Chakraborty, Neeloy and Driggs-Campbell, Katherine},
-  journal={arXiv preprint arXiv:2411.12150},
-  year={2024}
+  journal={IEEE Transactions on Automation Science and Engineering},
+  year={2026}
 }
 
 @inproceedings{liu2022intention,
